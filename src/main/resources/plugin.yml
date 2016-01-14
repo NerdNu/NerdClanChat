@@ -22,12 +22,12 @@ commands:
     permission: nerdclanchat.player
     permission-message: You don't have permission to do that.
   crq:
-    usage: "/crq #<channel> <message>"
+    usage: /crq <message>
     description: Sends a message to the last channel that you received a message from, regardless of what your default channel is and does not change your default channel.
     permission: nerdclanchat.player
     permission-message: You don't have permission to do that.
   cqr:
-    usage: "/cqr #<channel> <message>"
+    usage: /cqr <message>
     description: Sends a message to the last channel that you received a message from, regardless of what your default channel is and does not change your default channel.
     permission: nerdclanchat.player
     permission-message: You don't have permission to do that.
