@@ -21,6 +21,16 @@ commands:
     description: Sends a quick message to the specified channel. This does not change your default channel.
     permission: nerdclanchat.player
     permission-message: You don't have permission to do that.
+  crq:
+    usage: /crq <message>
+    description: Sends a message to the last channel that you received a message from, regardless of what your default channel is and does not change your default channel.
+    permission: nerdclanchat.player
+    permission-message: You don't have permission to do that.
+  cqr:
+    usage: /cqr <message>
+    description: Sends a message to the last channel that you received a message from, regardless of what your default channel is and does not change your default channel.
+    permission: nerdclanchat.player
+    permission-message: You don't have permission to do that.
   ca:
     usage: /ca [#<channel>] <message>
     description: Sends an alert message to the channel. You must be an owner/manager of the channel. If a channel name is not included it will alert your current channel.
