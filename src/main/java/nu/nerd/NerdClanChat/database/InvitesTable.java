@@ -1,8 +1,7 @@
 package nu.nerd.NerdClanChat.database;
 
-
-import com.avaje.ebean.Query;
-import com.avaje.ebean.SqlUpdate;
+import io.ebean.Query;
+import io.ebean.SqlUpdate;
 import nu.nerd.NerdClanChat.NerdClanChat;
 
 public class InvitesTable {
@@ -28,10 +27,7 @@ public class InvitesTable {
                 .ieq("uuid", UUID)
                 .ieq("channel", channel)
                 .query();
-        if (query != null) {
-            if (query.findRowCount() > 0) return true;
-        }
-        return false;
+        return query != null && query.findCount() > 0;
     }
 
 

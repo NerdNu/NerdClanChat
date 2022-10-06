@@ -1,7 +1,7 @@
 package nu.nerd.NerdClanChat.database;
 
 
-import com.avaje.ebean.Query;
+import io.ebean.Query;
 import nu.nerd.NerdClanChat.NerdClanChat;
 
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ public class ChannelsTable {
         Channel ch = null;
         Query<Channel> query = plugin.getDatabase().find(Channel.class).where().ieq("name", name).query();
         if (query != null) {
-            ch = query.findUnique();
+            ch = query.findOne();
         }
         return ch;
     }

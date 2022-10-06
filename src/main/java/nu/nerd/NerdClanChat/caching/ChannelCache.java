@@ -18,16 +18,16 @@ public class ChannelCache {
 
 
     public NerdClanChat plugin;
-    private HashMap<String, Channel> channels;
-    private HashMap<String, HashMap<String, ChannelMember>> members;
-    private HashMap<String, List<Bulletin>> bulletins;
+    private final HashMap<String, Channel> channels;
+    private final HashMap<String, HashMap<String, ChannelMember>> members;
+    private final HashMap<String, List<Bulletin>> bulletins;
 
 
     public ChannelCache(NerdClanChat plugin) {
         this.plugin = plugin;
-        this.channels = new HashMap<String, Channel>();
-        this.members = new HashMap<String, HashMap<String, ChannelMember>>();
-        this.bulletins = new HashMap<String, List<Bulletin>>();
+        this.channels = new HashMap<>();
+        this.members = new HashMap<>();
+        this.bulletins = new HashMap<>();
     }
 
 
@@ -46,7 +46,9 @@ public class ChannelCache {
 
 
     public void updateChannel(String name, Channel channel) {
-        if (name == null || name.length() < 1) return;
+        if (name == null || name.length() < 1) {
+			return;
+		}
         name = name.toLowerCase();
         if (this.channels.containsKey(name)) {
             this.channels.remove(name);
@@ -70,7 +72,9 @@ public class ChannelCache {
 
 
     public void updateChannelMembers(String channel, HashMap<String, ChannelMember> channelMembers) {
-        if (channel == null || channel.length() < 1) return;
+        if (channel == null || channel.length() < 1) {
+			return;
+		}
         channel = channel.toLowerCase();
         if (this.members.containsKey(channel)) {
             this.members.remove(channel);
@@ -95,7 +99,9 @@ public class ChannelCache {
 
 
     public void updateBulletins(String channel, List<Bulletin> bulletins) {
-        if (channel == null || channel.length() < 1) return;
+        if (channel == null || channel.length() < 1) {
+			return;
+		}
         channel = channel.toLowerCase();
         if (this.bulletins.containsKey(channel)) {
             this.bulletins.remove(channel);

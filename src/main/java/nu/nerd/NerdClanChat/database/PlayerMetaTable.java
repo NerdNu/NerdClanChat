@@ -1,7 +1,6 @@
 package nu.nerd.NerdClanChat.database;
 
-
-import com.avaje.ebean.Query;
+import io.ebean.Query;
 import nu.nerd.NerdClanChat.NerdClanChat;
 
 public class PlayerMetaTable {
@@ -19,7 +18,7 @@ public class PlayerMetaTable {
         PlayerMeta pm = null;
         Query<PlayerMeta> query = plugin.getDatabase().find(PlayerMeta.class).where().ieq("UUID", UUID).query();
         if (query != null) {
-            pm = query.findUnique();
+            pm = query.findOne();
         }
         return pm;
     }
@@ -29,7 +28,7 @@ public class PlayerMetaTable {
         PlayerMeta pm = null;
         Query<PlayerMeta> query = plugin.getDatabase().find(PlayerMeta.class).where().ieq("name", name).query();
         if (query != null) {
-            pm = query.findUnique();
+            pm = query.findOne();
         }
         return pm;
     }

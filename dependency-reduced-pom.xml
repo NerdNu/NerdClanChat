@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>nu.nerd</groupId>
   <artifactId>NerdClanChat</artifactId>
-  <version>1.0.6</version>
+  <version>1.0.7</version>
   <build>
     <resources>
       <resource>
@@ -14,15 +14,21 @@
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.7.0</version>
+        <version>3.8.1</version>
         <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
+          <release>17</release>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>io.ebean</groupId>
+              <artifactId>querybean-generator</artifactId>
+              <version>12.12.1</version>
+            </path>
+          </annotationProcessorPaths>
         </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>2.4.3</version>
+        <version>3.3.1-SNAPSHOT</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -40,6 +46,17 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>io.repaint.maven</groupId>
+        <artifactId>tiles-maven-plugin</artifactId>
+        <version>2.19</version>
+        <extensions>true</extensions>
+        <configuration>
+          <tiles>
+            <tile>io.ebean.tile:enhancement:12.12.1</tile>
+          </tiles>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
   <repositories>
@@ -48,35 +65,19 @@
       <url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
     </repository>
   </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <snapshots />
+      <id>Maven Snapshot Repo</id>
+      <url>https://repository.apache.org/content/repositories/snapshots/</url>
+    </pluginRepository>
+  </pluginRepositories>
   <dependencies>
     <dependency>
       <groupId>org.bukkit</groupId>
       <artifactId>bukkit</artifactId>
       <version>1.12-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>commons-lang</artifactId>
-          <groupId>commons-lang</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>json-simple</artifactId>
-          <groupId>com.googlecode.json-simple</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>guava</artifactId>
-          <groupId>com.google.guava</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>gson</artifactId>
-          <groupId>com.google.code.gson</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>snakeyaml</artifactId>
-          <groupId>org.yaml</groupId>
-        </exclusion>
-      </exclusions>
     </dependency>
   </dependencies>
 </project>
-

@@ -7,7 +7,7 @@
 
     <groupId>nu.nerd</groupId>
     <artifactId>NerdClanChat</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.7</version>
 
 
     <repositories>
@@ -16,6 +16,15 @@
             <url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
         </repository>
     </repositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>Maven Snapshot Repo</id>
+			<url>https://repository.apache.org/content/repositories/snapshots/</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</pluginRepository>
+	</pluginRepositories>
 
 
     <dependencies>
@@ -28,7 +37,12 @@
         <dependency>
             <groupId>nu.nerd</groupId>
             <artifactId>BukkitEbean</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1</version>
+        </dependency>
+		<dependency>
+            <groupId>io.ebean</groupId>
+            <artifactId>ebean</artifactId>
+            <version>12.14.0</version>
         </dependency>
     </dependencies>
 
@@ -46,16 +60,22 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.7.0</version>
+                <version>3.8.1</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <release>17</release>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>io.ebean</groupId>
+							<artifactId>querybean-generator</artifactId>
+							<version>12.12.1</version>
+						</path>
+					</annotationProcessorPaths>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>2.4.3</version>
+                <version>3.3.1-SNAPSHOT</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -73,6 +93,19 @@
                     </execution>
                 </executions>
             </plugin>
+
+			<plugin>
+				<groupId>io.repaint.maven</groupId>
+				<artifactId>tiles-maven-plugin</artifactId>
+				<version>2.19</version>
+				<extensions>true</extensions>
+				<configuration>
+					<tiles>
+						<!-- other tiles ... -->
+						<tile>io.ebean.tile:enhancement:12.12.1</tile>
+					</tiles>
+				</configuration>
+			</plugin>
         </plugins>
 
     </build>

@@ -1,8 +1,8 @@
 package nu.nerd.NerdClanChat.database;
 
 
-import com.avaje.ebean.Query;
-import com.avaje.ebean.SqlUpdate;
+import io.ebean.Query;
+import io.ebean.SqlUpdate;
 import nu.nerd.NerdClanChat.NerdClanChat;
 
 import java.util.ArrayList;

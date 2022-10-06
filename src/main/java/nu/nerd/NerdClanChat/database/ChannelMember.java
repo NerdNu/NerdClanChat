@@ -1,7 +1,6 @@
 package nu.nerd.NerdClanChat.database;
 
-import com.avaje.ebean.validation.NotNull;
-
+import io.ebean.annotation.NotNull;
 import javax.persistence.*;
 
 
