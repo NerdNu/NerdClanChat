@@ -6,20 +6,29 @@
 
 package nu.nerd.NerdClanChat;
 
-import io.ebean.Database;
-import nu.nerd.BukkitEbean.EbeanBuilder;
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.dao.DaoManager;
+import com.j256.ormlite.jdbc.JdbcConnectionSource;
+import com.j256.ormlite.support.ConnectionSource;
+import com.j256.ormlite.table.TableUtils;
+import net.kyori.adventure.text.Component;
 import nu.nerd.NerdClanChat.caching.*;
 import nu.nerd.NerdClanChat.database.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import javax.persistence.PersistenceException;
-import java.util.ArrayList;
+import java.sql.SQLException;
+import java.util.logging.Level;
 
 
 public final class NerdClanChat extends JavaPlugin {
 
-
-    private Database db;
+    private static final String DATABASE_URL = "jdbc:sqlite:plugins/NerdClanChat/clanchat.db";
+    private ConnectionSource connectionSource;
+    private Dao<Bulletin, Integer> bulletinsDao;
+    private Dao<Channel, Integer> channelsDao;
+    private Dao<ChannelMember, Integer> channelMembersDao;
+    private Dao<Invite, Integer> invitesDao;
+    private Dao<PlayerMeta, Integer> playerMetaDao;
 
     public ChannelsTable channelsTable;
     public ChannelMembersTable channelMembersTable;
@@ -86,39 +95,60 @@ public final class NerdClanChat extends JavaPlugin {
 
 
     public boolean setUpDatabase() {
-        db = new EbeanBuilder(this).setClasses(getDatabaseClasses()).build();
         try {
-            getDatabase().find(Channel.class).findCount();
-        } catch (PersistenceException ex) {
-            getLogger().info("Initializing database.");
-//            EbeanHelper.installDDL(db);
+            connectionSource = new JdbcConnectionSource(DATABASE_URL);
+            TableUtils.createTableIfNotExists(connectionSource, Bulletin.class);
+            TableUtils.createTableIfNotExists(connectionSource, Channel.class);
+            TableUtils.createTableIfNotExists(connectionSource, ChannelMember.class);
+            TableUtils.createTableIfNotExists(connectionSource, Invite.class);
+            TableUtils.createTableIfNotExists(connectionSource, PlayerMeta.class);
+
+            bulletinsDao = DaoManager.createDao(connectionSource, Bulletin.class);
+            channelsDao = DaoManager.createDao(connectionSource, Channel.class);
+            channelMembersDao = DaoManager.createDao(connectionSource, ChannelMember.class);
+            invitesDao = DaoManager.createDao(connectionSource, Invite.class);
+            playerMetaDao = DaoManager.createDao(connectionSource, PlayerMeta.class);
+
             return true;
+        } catch(SQLException e) {
+            log("Database setup failed!", Level.SEVERE);
+            return false;
         }
-        return false;
-    }
-
-
-    public Database getDatabase() {
-        return db;
-    }
-
-
-    public ArrayList<Class<?>> getDatabaseClasses() {
-        ArrayList<Class<?>> list = new ArrayList<Class<?>>();
-        list.add(Channel.class);
-        list.add(ChannelMember.class);
-        list.add(PlayerMeta.class);
-        list.add(Bulletin.class);
-        list.add(Invite.class);
-        return list;
     }
 
 
     public void logDebug(String msg) {
         if (config.DEBUG) {
-            getLogger().info(msg);
+            log(msg, Level.INFO);
         }
     }
 
+    public void log(String message, Level level) {
+        getComponentLogger().warn(Component.text(message), level);
+    }
+
+    public Dao<Bulletin, Integer> getBulletinsDao() {
+        return bulletinsDao;
+    }
+
+    public Dao<Channel, Integer> getChannelsDao() {
+        return channelsDao;
+    }
+
+    public Dao<ChannelMember, Integer> getChannelMembersDao() {
+        return channelMembersDao;
+    }
+
+    public Dao<Invite, Integer> getInvitesDao() {
+        return invitesDao;
+    }
+
+    public Dao<PlayerMeta, Integer> getPlayerMetaDao() {
+        return playerMetaDao;
+    }
+
+    public PlayerMetaTable getPlayerMetaTable() {
+        return playerMetaTable;
+    }
 
 }

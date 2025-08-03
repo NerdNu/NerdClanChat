@@ -1,6 +1,8 @@
 package nu.nerd.NerdClanChat;
 
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import nu.nerd.NerdClanChat.database.Bulletin;
 import nu.nerd.NerdClanChat.database.Channel;
 import nu.nerd.NerdClanChat.database.ChannelMember;
@@ -11,6 +13,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class PluginListener implements Listener {
 
@@ -32,53 +35,66 @@ public class PluginListener implements Listener {
 
     public void updateStoredPlayerName(PlayerJoinEvent event) {
 
-        boolean isNewPlayer = false;
         String UUID = event.getPlayer().getUniqueId().toString();
         String name = event.getPlayer().getName();
-        PlayerMeta meta = plugin.playerMetaCache.getPlayerMeta(UUID);
+        plugin.playerMetaCache.getPlayerMeta(UUID).thenAccept(meta -> {
 
-        if ( meta.getName() != null && !meta.getName().equals(name) ) {
-            plugin.channelMembersTable.updateChannelMemberNames(UUID, name);
-        }
+            boolean isNewPlayer = false;
 
-        if (meta.getName() == null || meta.getName().equals("")) {
-            isNewPlayer = true;
-        }
+            if ( meta.getName() != null && !meta.getName().equals(name) ) {
+                plugin.channelMembersTable.updateChannelMemberNames(UUID, name);
+            }
 
-        meta.setName(name);
-        plugin.playerMetaCache.updatePlayerMeta(UUID, meta);
+            if (meta.getName() == null || meta.getName().isEmpty()) {
+                isNewPlayer = true;
+            }
 
-        if (isNewPlayer) {
-            plugin.playerMetaTable.update(meta);
-            plugin.playerMetaCache.setMetaPersisted(UUID, true);
-        }
+            meta.setName(name);
+            plugin.playerMetaCache.updatePlayerMeta(UUID, meta);
 
+            if (isNewPlayer) {
+                plugin.playerMetaTable.save(meta);
+                plugin.playerMetaCache.setMetaPersisted(UUID, true);
+            }
+        });
     }
 
 
     public void printBulletins(PlayerJoinEvent event) {
-
         String UUID = event.getPlayer().getUniqueId().toString();
-        List<ChannelMember> channels = plugin.transientPlayerCache.getChannelsForPlayer(UUID);
+        CompletableFuture<List<ChannelMember>> channelsFuture = plugin.transientPlayerCache.getChannelsForPlayer(UUID);
         Integer limit = plugin.config.BULLETIN_LIMIT;
 
-        if (channels != null && channels.size() > 0) {
-            for (ChannelMember cm : channels) {
-                List<Bulletin> bulletins = plugin.channelCache.getBulletins(cm.getChannel());
-                if (bulletins.size() > 0 && cm.isSubscribed()) {
-                    Channel channel = plugin.channelCache.getChannel(cm.getChannel());
-                    String tag = String.format("%s[%s] ", ChatColor.valueOf(channel.getColor()), channel.getName());
-                    if (limit > 0 && bulletins.size() > limit) {
-                        bulletins = bulletins.subList(bulletins.size()-limit, bulletins.size());
-                    }
-                    for (Bulletin bulletin : bulletins) {
-                        String msg = tag + ChatColor.valueOf(channel.getAlertColor()) + bulletin.getMessage();
-                        event.getPlayer().sendMessage(msg);
+        channelsFuture.thenAccept(channels -> {
+            if (channels != null && !channels.isEmpty()) {
+                for (ChannelMember cm : channels) {
+                    if (cm.isSubscribed()) {
+                        CompletableFuture<List<Bulletin>> bulletinsFuture = plugin.channelCache.getBulletins(cm.getChannel());
+                        CompletableFuture<Channel> channelFuture = plugin.channelCache.getChannel(cm.getChannel());
+
+                        CompletableFuture.allOf(bulletinsFuture, channelFuture)
+                                .thenAccept(v -> {
+                                    List<Bulletin> bulletins = bulletinsFuture.join();
+                                    Channel channel = channelFuture.join();
+
+                                    if (bulletins != null && !bulletins.isEmpty()) {
+                                        TextComponent tag = Component.text("[" + channel.getName() + "] ",
+                                                NCCUtil.color(channel.getColor()));
+
+                                        List<Bulletin> bulletinsToShow = bulletins;
+                                        if (limit > 0 && bulletins.size() > limit) {
+                                            bulletinsToShow = bulletins.subList(bulletins.size() - limit, bulletins.size());
+                                        }
+
+                                        for (Bulletin bulletin : bulletinsToShow) {
+                                            event.getPlayer().sendMessage(tag.append(Component.text(bulletin.getMessage(), NCCUtil.color(channel.getAlertColor()))));
+                                        }
+                                    }
+                                });
                     }
                 }
             }
-        }
-
+        });
     }
 
 

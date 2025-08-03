@@ -12,6 +12,7 @@ import nu.nerd.NerdClanChat.database.ChannelMember;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 
 public class ChannelCache {
@@ -22,7 +23,10 @@ public class ChannelCache {
     private final HashMap<String, HashMap<String, ChannelMember>> members;
     private final HashMap<String, List<Bulletin>> bulletins;
 
-
+    /**
+     * The constructor to create a new channel cache instance.
+     * @param plugin the instance of the plugin.
+     */
     public ChannelCache(NerdClanChat plugin) {
         this.plugin = plugin;
         this.channels = new HashMap<>();
@@ -30,21 +34,31 @@ public class ChannelCache {
         this.bulletins = new HashMap<>();
     }
 
-
-    public Channel getChannel(String name) {
+    /**
+     * Get a channel from cache. If not cached, get it from the database and cache it.
+     * @param name the channel's name.
+     * @return the channel
+     */
+    public CompletableFuture<Channel> getChannel(String name) {
         name = name.toLowerCase();
         if (this.channels.containsKey(name)) {
-            return this.channels.get(name); //cache hit
-        } else {
-            Channel ch = plugin.channelsTable.getChannel(name); //load channel from database
-            if (ch != null) {
-                this.channels.put(name, ch);
-            }
-            return ch;
+            return CompletableFuture.completedFuture(this.channels.get(name)); //cache hit
         }
+        String finalName = name;
+        return plugin.channelsTable.getChannel(finalName).thenApply(channel -> {
+            if (channel != null) {
+                this.channels.put(finalName, channel);
+                return channel;
+            }
+            return null;
+        });
     }
 
-
+    /**
+     * Updates a channel in the cache.
+     * @param name the name of the channel being updated.
+     * @param channel the channel being updated.
+     */
     public void updateChannel(String name, Channel channel) {
         if (name == null || name.length() < 1) {
 			return;
@@ -56,21 +70,30 @@ public class ChannelCache {
         this.channels.put(name, channel);
     }
 
-
-    public HashMap<String, ChannelMember> getChannelMembers(String channel) {
+    /**
+     * Fetches all members of a channel. Also adds them to cache.
+     * @param channel the channel being fetched from.
+     * @return a hashmap of the channel's name and its members.
+     */
+    public CompletableFuture<HashMap<String, ChannelMember>> getChannelMembers(String channel) {
         channel = channel.toLowerCase();
         if (this.members.containsKey(channel)) {
-            return this.members.get(channel); //cache hit
-        } else {
-            HashMap<String, ChannelMember> chm = plugin.channelMembersTable.getChannelMembers(channel); //load from database
+            return CompletableFuture.completedFuture(this.members.get(channel)); //cache hit
+        }
+        String finalChannel = channel;
+        return plugin.channelMembersTable.getChannelMembers(channel).thenApply(chm -> { //load from database
             if (chm != null) {
-                this.members.put(channel, chm);
+                this.members.put(finalChannel, chm);
             }
             return chm;
-        }
+        });
     }
 
-
+    /**
+     * Updates all members of the specified channel.
+     * @param channel the channel having its members updated.
+     * @param channelMembers the cached hashmap of members.
+     */
     public void updateChannelMembers(String channel, HashMap<String, ChannelMember> channelMembers) {
         if (channel == null || channel.length() < 1) {
 			return;
@@ -83,21 +106,31 @@ public class ChannelCache {
         plugin.transientPlayerCache.clearPlayerCache(channelMembers.values());
     }
 
-
-    public List<Bulletin> getBulletins(String channel) {
+    /**
+     * Fetches all bulletins belonging to the specified channel.
+     * @param channel the channel having its bulletins fetched.
+     * @return a list of bulletins.
+     */
+    public CompletableFuture<List<Bulletin>> getBulletins(String channel) {
         channel = channel.toLowerCase();
         if (this.bulletins.containsKey(channel)) {
-            return this.bulletins.get(channel); //cache hit
-        } else {
-            List<Bulletin> bul = plugin.bulletinsTable.getChannelBulletins(channel); //load from database
-            if (bul != null) {
-                this.bulletins.put(channel, bul);
-            }
-            return bul;
+            return CompletableFuture.completedFuture(this.bulletins.get(channel)); //cache hit
         }
+        String finalChannel = channel;
+        plugin.bulletinsTable.getChannelBulletins(channel).thenApply(bulletinList -> { //load from database
+            if (bulletinList != null) {
+                this.bulletins.put(finalChannel, bulletinList);
+            }
+            return bulletinList;
+        });
+        return null;
     }
 
-
+    /**
+     * Updates all bulletins of the specified channel.
+     * @param channel the channel having its bulletins updated.
+     * @param bulletins the cached hashmap of bulletins.
+     */
     public void updateBulletins(String channel, List<Bulletin> bulletins) {
         if (channel == null || channel.length() < 1) {
 			return;
@@ -109,7 +142,10 @@ public class ChannelCache {
         this.bulletins.put(channel, bulletins);
     }
 
-
+    /**
+     * Removes a channel and all of its cached data.
+     * @param channel the channel being removed.
+     */
     public void remove(String channel) {
         HashMap<String, ChannelMember> channelMembers = this.members.get(channel);
         plugin.transientPlayerCache.clearPlayerCache(channelMembers.values());

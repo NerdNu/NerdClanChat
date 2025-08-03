@@ -8,10 +8,12 @@ package nu.nerd.NerdClanChat.caching;
 
 import nu.nerd.NerdClanChat.NerdClanChat;
 import nu.nerd.NerdClanChat.database.PlayerMeta;
+import nu.nerd.NerdClanChat.database.PlayerMetaTable;
 
-import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 public class PlayerMetaCache {
 
@@ -19,35 +21,49 @@ public class PlayerMetaCache {
     public NerdClanChat plugin;
     private ConcurrentHashMap<String, PlayerMeta> playerMeta;
     private ConcurrentHashMap<String, Boolean> persisted;
+    private PlayerMetaTable playerMetaTable;
 
-
+    /**
+     * The constructor to create the playermeta cache.
+     * @param plugin the instance of the plugin.
+     */
     public PlayerMetaCache(NerdClanChat plugin) {
         this.plugin = plugin;
-        this.playerMeta = new ConcurrentHashMap<String, PlayerMeta>();
-        this.persisted = new ConcurrentHashMap<String, Boolean>();
+        this.playerMeta = new ConcurrentHashMap<>();
+        this.persisted = new ConcurrentHashMap<>();
+        this.playerMetaTable = plugin.getPlayerMetaTable();
     }
 
-
-    public PlayerMeta getPlayerMeta(String UUID) {
+    /**
+     * Fetches a player's playermeta from cache. If not in cache, fetches from the database and caches it.
+     * @param UUID the UUID of the player whose playermeta is being fetched.
+     * @return the player's playermeta.
+     */
+    public CompletableFuture<PlayerMeta> getPlayerMeta(String UUID) {
         if (this.playerMeta.containsKey(UUID)) {
-            return this.playerMeta.get(UUID); //cache hit
+            return CompletableFuture.completedFuture(this.playerMeta.get(UUID)); //cache hit
         } else {
-            PlayerMeta pm = plugin.playerMetaTable.getPlayerMeta(UUID); //load from database on cache miss
-            if (pm == null) { //if there isn't an entry for a player, create it
-                pm = new PlayerMeta(UUID);
-                try {
-                    plugin.playerMetaTable.save(pm);
-                } catch (Exception ex) {
-                    plugin.getLogger().warning(ex.toString());
+            return plugin.playerMetaTable.getPlayerMeta(UUID).thenApply(meta -> { //load from database on cache miss
+                if (meta == null) { //if there isn't an entry for a player, create it
+                    meta = new PlayerMeta(UUID);
+                    try {
+                        plugin.playerMetaTable.save(meta);
+                    } catch (Exception ex) {
+                        plugin.getLogger().warning(ex.toString());
+                    }
                 }
-            }
-            this.playerMeta.put(UUID, pm);
-            this.persisted.put(UUID, true);
-            return pm;
+                this.playerMeta.put(UUID, meta);
+                this.persisted.put(UUID, true);
+                return meta;
+            });
         }
     }
 
-
+    /**
+     * Check if the provided player's playermeta is persisted to the database.
+     * @param UUID the player's UUID.
+     * @return true if it is, false if not.
+     */
     public boolean isMetaPersisted(String UUID) {
         if (!(this.persisted.containsKey(UUID))) {
             return false;
@@ -57,7 +73,11 @@ public class PlayerMetaCache {
         }
     }
 
-
+    /**
+     * Sets whether a player's playermeta is persisted or not.
+     * @param UUID the UUID of the player being checked.
+     * @param isPersisted true if persisted, false if not.
+     */
     public void setMetaPersisted(String UUID, boolean isPersisted) {
         if (this.persisted.containsKey(UUID)) {
             this.persisted.remove(UUID);
@@ -65,7 +85,11 @@ public class PlayerMetaCache {
         this.persisted.put(UUID, isPersisted);
     }
 
-
+    /**
+     * Updates a player's playermeta.
+     * @param UUID the UUID of the player whose playermeta is being updated.
+     * @param meta the playermeta.
+     */
     public void updatePlayerMeta(String UUID, PlayerMeta meta) {
         if (this.playerMeta.containsKey(UUID)) {
             this.playerMeta.remove(UUID);
@@ -74,12 +98,16 @@ public class PlayerMetaCache {
         this.setMetaPersisted(UUID, false);
     }
 
-
-    public PlayerMeta getPlayerMetaByName(String name) {
-        PlayerMeta retVal = null;
+    /**
+     * Fetches a player's playermeta by username from cache. If not in cache, fetches from the database and caches it.
+     * @param name the username of the player whose playermeta is being fetched.
+     * @return the player's playermeta.
+     */
+    public CompletableFuture<PlayerMeta> getPlayerMetaByName(String name) {
+        CompletableFuture<PlayerMeta> retVal = null;
         for (PlayerMeta entry : this.playerMeta.values()) {
             if (entry.getName().equalsIgnoreCase(name)) {
-                retVal = entry;
+                retVal = CompletableFuture.completedFuture(entry);
             }
         }
         if (retVal == null) {
@@ -88,24 +116,22 @@ public class PlayerMetaCache {
         return retVal;
     }
 
-
+    /**
+     * Writes the cache to the database.
+     */
     public void persistCache() {
-        plugin.getDatabase().beginTransaction();
         try {
-            Iterator<Map.Entry<String, Boolean>> iterator = this.persisted.entrySet().iterator();
-            while (iterator.hasNext()) {
-                Map.Entry<String, Boolean> p = iterator.next();
-                if (!p.getValue()) {
-                    PlayerMeta meta = this.getPlayerMeta(p.getKey());
-                    plugin.getDatabase().save(meta);
-                    p.setValue(true);
+            for(Map.Entry<String, Boolean> entry : persisted.entrySet()) {
+                if (!entry.getValue()) {
+                    this.getPlayerMeta(entry.getKey()).thenAccept(meta -> {
+                        playerMetaTable.save(meta);
+                        entry.setValue(true);
+                    });
                 }
             }
-            plugin.getDatabase().commitTransaction();
         } catch (Exception ex) {
-            plugin.getLogger().warning(ex.toString());
-        } finally {
-            plugin.getDatabase().endTransaction();
+            plugin.log("Failed to persist cache.", Level.SEVERE);
+            ex.printStackTrace();
         }
     }
 

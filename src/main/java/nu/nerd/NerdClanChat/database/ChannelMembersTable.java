@@ -1,77 +1,139 @@
 package nu.nerd.NerdClanChat.database;
 
 
-import io.ebean.Query;
-import io.ebean.SqlUpdate;
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.DeleteBuilder;
+import com.j256.ormlite.stmt.UpdateBuilder;
 import nu.nerd.NerdClanChat.NerdClanChat;
 
-import java.util.ArrayList;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
 
 public class ChannelMembersTable {
 
 
     NerdClanChat plugin;
+    Dao<ChannelMember, Integer> channelMembersDao;
 
-
+    /**
+     * Constructor that creates a new ChannelMembersTable instance.
+     * @param plugin the instance of the plugin.
+     */
     public ChannelMembersTable(NerdClanChat plugin) {
         this.plugin = plugin;
+        this.channelMembersDao = plugin.getChannelMembersDao();
     }
 
 
-    public HashMap<String, ChannelMember> getChannelMembers(String channel) {
-        HashMap<String, ChannelMember> members = new HashMap<String, ChannelMember>();
-        Query<ChannelMember> query = plugin.getDatabase().find(ChannelMember.class).where().ieq("channel", channel).query();
-        if (query != null) {
-            for (ChannelMember member : query.findList()) {
-                members.put(member.getUUID(), member);
+    /**
+     * Get a hashmap of the members of the specified channel.
+     * @param channel the channel members are being fetched from.
+     * @return the hashmap of UUIDs and members.
+     */
+    public CompletableFuture<HashMap<String, ChannelMember>> getChannelMembers(String channel) {
+        return CompletableFuture.supplyAsync(() -> {
+            HashMap<String, ChannelMember> members = new HashMap<>();
+            try {
+                List<ChannelMember> membersList = channelMembersDao.queryBuilder().where().eq("channel", channel).query();
+                for(ChannelMember member : membersList) {
+                    members.put(member.getUUID(), member);
+                }
+                return members;
+            } catch(SQLException exception) {
+                plugin.log("Failed to get members of channel: " + channel, Level.SEVERE);
+                exception.printStackTrace();
             }
-        }
-        return members;
+            return null;
+        });
     }
 
 
-    public List<ChannelMember> getChannelsForPlayer(String UUID) {
-        List<ChannelMember> channels = new ArrayList<ChannelMember>();
-        Query<ChannelMember> query = plugin.getDatabase().find(ChannelMember.class).where().ieq("uuid", UUID).query();
-        if (query != null) {
-            for (ChannelMember channel : query.findList()) {
-                channels.add(channel);
+    /**
+     * Gets all channels the provided player is a member of.
+     * @param UUID the UUID of the player being checked.
+     * @return a list of channel member objects that have channels paired with them.
+     */
+    public CompletableFuture<List<ChannelMember>> getChannelsForPlayer(String UUID) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return channelMembersDao.queryBuilder().where().eq("UUID", UUID).query();
+            } catch(SQLException exception) {
+                plugin.log("Unable to get channels for user: " + UUID, Level.SEVERE);
+                exception.printStackTrace();
             }
-        }
-        return channels;
+            return null;
+        });
     }
 
 
+    /**
+     * Updates the username field in the database for a given UUID.
+     * @param UUID the UUID whose username is being updated.
+     * @param newName the new username.
+     */
     public void updateChannelMemberNames(String UUID, String newName) {
-        String query = "update clanchat_members set name=:name where uuid=:uuid";
-        SqlUpdate update = plugin.getDatabase().createSqlUpdate(query)
-                .setParameter("name", newName)
-                .setParameter("uuid", UUID);
-        update.execute();
+        CompletableFuture.runAsync(() -> {
+            try {
+                UpdateBuilder<ChannelMember, Integer> updateBuilder = channelMembersDao.updateBuilder();
+                updateBuilder.updateColumnValue("name", newName).where().eq("UUID", UUID);
+                updateBuilder.update();
+            } catch(SQLException exception) {
+                plugin.log("Failed to update channel member name: " + UUID, Level.SEVERE);
+                exception.printStackTrace();
+            }
+        });
     }
 
 
+    /**
+     * Delete all members of a channel.
+     * @param channel the channel having its members deleted.
+     */
     public void deleteChannelMembers(String channel) {
-        String query = "delete from clanchat_members where channel=:channel";
-        SqlUpdate update = plugin.getDatabase().createSqlUpdate(query).setParameter("channel", channel);
-        update.execute();
+        CompletableFuture.runAsync(() -> {
+            try {
+                DeleteBuilder<ChannelMember, Integer> deleteBuilder = channelMembersDao.deleteBuilder();
+                deleteBuilder.where().eq("channel", channel);
+                deleteBuilder.delete();
+            } catch(SQLException exception) {
+                plugin.log("Failed to delete channel members for: " + channel, Level.SEVERE);
+                exception.printStackTrace();
+            }
+        });
     }
 
 
+    /**
+     * Deletes a single channel member.
+     * @param channelMember the member being deleted.
+     */
     public void delete(ChannelMember channelMember) {
-        plugin.getDatabase().delete(channelMember);
+        CompletableFuture.runAsync(() -> {
+            try {
+                channelMembersDao.delete(channelMember);
+            } catch(SQLException exception) {
+                plugin.log("Failed to delete channel member: " + channelMember.getName(), Level.SEVERE);
+                exception.printStackTrace();
+            }
+        });
     }
 
 
+    /**
+     * Saves a channel member to the database.
+     * @param channelMember the channel member being saved.
+     */
     public void save(ChannelMember channelMember) {
-        plugin.getDatabase().save(channelMember);
-    }
-
-
-    public void update(ChannelMember channelMember) {
-        plugin.getDatabase().update(channelMember);
+        try {
+            channelMembersDao.createOrUpdate(channelMember);
+        } catch(SQLException exception) {
+            plugin.log("Failed to save/update channel member: " + channelMember.getName(), Level.SEVERE);
+            exception.printStackTrace();
+        }
     }
 
 

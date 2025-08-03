@@ -3,55 +3,54 @@ main: nu.nerd.NerdClanChat.NerdClanChat
 description: A chat channel plugin
 version: ${project.version}
 database: true
-
+api-version: '1.21'
 
 commands:
   clanchat:
     usage: /clanchat [subcommand]
-    description: ClanChat management
+    description: "ClanChat management"
     permission: nerdclanchat.player
-    permission-message: You don't have permission to do that.
+    permission-message: "You don't have permission to do that."
   c:
     usage: /c [#channel] message
-    description: Send a message to a channel
+    description: "Send a message to a channel"
     permission: nerdclanchat.player
     permission-message: You don't have permission to do that.
   cq:
     usage: "/cq #<channel> <message>"
-    description: Sends a quick message to the specified channel. This does not change your default channel.
+    description: "Sends a quick message to the specified channel. This does not change your default channel."
     permission: nerdclanchat.player
-    permission-message: You don't have permission to do that.
+    permission-message: "You don't have permission to do that."
   ca:
     usage: /ca [#<channel>] <message>
-    description: Sends an alert message to the channel. You must be an owner/manager of the channel. If a channel name is not included it will alert your current channel.
+    description: "Sends an alert message to the channel. You must be an owner/manager of the channel. If a channel name is not included it will alert your current channel."
     permission: nerdclanchat.player
-    permission-message: You don't have permission to do that.
+    permission-message: "You don't have permission to do that."
   cme:
     usage: /cme [#<channel>] <message>
-    description: Sends a "/me" type message to your current, or specified, channel.
+    description: 'Sends a "/me" type message to your current, or specified, channel.'
     permission: nerdclanchat.player
-    permission-message: You don't have permission to do that.
+    permission-message: "You don't have permission to do that."
   cs:
     usage: /cs [#<channel>] <message>
-    description: Sends a "/s" type sarcasm message to your current, or specified, channel.
+    description: 'Sends a "/s" type sarcasm message to your current, or specified, channel.'
     permission: nerdclanchat.player
-    permission-message: You don't have permission to do that.
+    permission-message: "You don't have permission to do that."
   cr:
     usage: /cr <message>
-    description: Sends a message to the last channel that you received a message from, regardless of what your default channel is.
+    description: "Sends a message to the last channel that you received a message from, regardless of what your default channel is."
     permission: nerdclanchat.player
-    permission-message: You don't have permission to do that.
+    permission-message: "You don't have permission to do that."
   cm:
     usage: /cm [#<channel>]
-    description: Lists all members in your default channel. If a channel is given, lists members in that channel.
+    description: "Lists all members in your default channel. If a channel is given, lists members in that channel."
     permission: nerdclanchat.player
-    permission-message: You don't have permission to do that.
+    permission-message: "You don't have permission to do that."
   cb:
     usage: /cb [#<channel>]
-    description: List bulletins for all channels you are a member of, or specify a channel to receive its bulletins.
+    description: "List bulletins for all channels you are a member of, or specify a channel to receive its bulletins."
     permission: nerdclanchat.player
-    permission-message: You don't have permission to do that.
-
+    permission-message: "You don't have permission to do that."
 
 permissions:
   nerdclanchat.admin:
