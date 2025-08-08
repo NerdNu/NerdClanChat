@@ -22,7 +22,7 @@ import java.util.logging.Level;
 
 public final class NerdClanChat extends JavaPlugin {
 
-    private static final String DATABASE_URL = "jdbc:sqlite:plugins/NerdClanChat/clanchat.db";
+    private static final String DATABASE_URL = "jdbc:sqlite:plugins/NerdClanChat/NerdClanChat.db";
     private ConnectionSource connectionSource;
     private Dao<Bulletin, Integer> bulletinsDao;
     private Dao<Channel, Integer> channelsDao;

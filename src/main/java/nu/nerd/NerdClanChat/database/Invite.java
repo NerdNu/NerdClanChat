@@ -13,7 +13,7 @@ public class Invite {
     private String channel;
 
     @DatabaseField(canBeNull = false)
-    private String UUID;
+    private String uuid;
 
     /**
      * Empty constructor required by ORMLite.
@@ -24,11 +24,11 @@ public class Invite {
     /**
      * Contructor to create a new invite instance.
      * @param channel the channel the invite belongs to.
-     * @param UUID the UUID of the player receiving this invite.
+     * @param uuid the UUID of the player receiving this invite.
      */
-    public Invite(String channel, String UUID) {
+    public Invite(String channel, String uuid) {
         this.setChannel(channel);
-        this.setUUID(UUID);
+        this.setUuid(uuid);
     }
 
     /**
@@ -51,16 +51,16 @@ public class Invite {
      * Returns the UUID of the player who's receiving the invite.
      * @return the UUID of the player who's receiving the invite.
      */
-    public String getUUID() {
-        return this.UUID;
+    public String getUuid() {
+        return this.uuid;
     }
 
     /**
      * Sets the UUID of the player who's receiving the invite.
-     * @param UUID the UUID of the player who's receiving the invite.
+     * @param uuid the UUID of the player who's receiving the invite.
      */
-    public void setUUID(String UUID) {
-        this.UUID = UUID;
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
 }

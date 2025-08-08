@@ -86,7 +86,7 @@ public class InvitesTable {
             try {
                 invitesDao.createOrUpdate(invite);
             } catch(SQLException exception) {
-                plugin.log("Failed to save/update invite for " + invite.getUUID() + " in " +
+                plugin.log("Failed to save/update invite for " + invite.getUuid() + " in " +
                         invite.getChannel(), Level.SEVERE);
                 exception.printStackTrace();
             }

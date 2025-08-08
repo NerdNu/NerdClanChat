@@ -221,7 +221,7 @@ public class ChatCommands implements TabExecutor {
                                     .append(Component.text(" <", NamedTextColor.GRAY))
                                     .append(Component.text(sender.getName(), NamedTextColor.WHITE))
                                     .append(Component.text("> ", NamedTextColor.GRAY))
-                                    .append(Component.text(message, NCCUtil.color(channel.getAlertColor()), TextDecoration.UNDERLINED));
+                                    .append(Component.text(message, NCCUtil.color(channel.getAlert_color()), TextDecoration.UNDERLINED));
 
                             logAndSend(channelName, sender, message, msg, members);
                         }
@@ -234,7 +234,7 @@ public class ChatCommands implements TabExecutor {
                 TextComponent name;
 
                 TextColor channelColor = NCCUtil.color(channel.getColor());
-                TextColor channelTextColor = NCCUtil.color(channel.getTextColor());
+                TextColor channelTextColor = NCCUtil.color(channel.getText_color());
 
                 // Get sender name, using ~console for console
                 name = Component.text("");
@@ -404,7 +404,7 @@ public class ChatCommands implements TabExecutor {
                 if (!bulletins.isEmpty()) {
                     TextComponent tag = Component.text("[" + channelName + "] ", NCCUtil.color(channel.getColor()));
                     for (Bulletin bulletin : bulletins) {
-                        TextComponent msg = tag.append(Component.text(bulletin.getMessage(), NCCUtil.color(channel.getAlertColor())));
+                        TextComponent msg = tag.append(Component.text(bulletin.getMessage(), NCCUtil.color(channel.getAlert_color())));
                         bukkitScheduler.runTask(plugin, () -> bukkitScheduler.runTask(plugin, () -> sender.sendMessage(msg)));
                     }
                 } else {
@@ -474,12 +474,12 @@ public class ChatCommands implements TabExecutor {
                             return;
                         }
 
-                        if (meta.getDefaultChannel() == null || !meta.getDefaultChannel().equals(channelName)) {
+                        if (meta.getDefault_channel() == null || !meta.getDefault_channel().equals(channelName)) {
                             bukkitScheduler.runTask(plugin, () -> sender.sendMessage(Component.text("Your" +
                                     " default channel has been changed to " + channelName, NamedTextColor.BLUE)));
                         }
 
-                        meta.setDefaultChannel(channelName);
+                        meta.setDefault_channel(channelName);
                         plugin.playerMetaCache.updatePlayerMeta(UUID, meta);
                     });
                 } catch(Exception exception) {
@@ -501,8 +501,8 @@ public class ChatCommands implements TabExecutor {
         if (sender instanceof Player player) {
             String UUID = player.getUniqueId().toString();
             return plugin.playerMetaCache.getPlayerMeta(UUID).thenApply(meta -> {
-                if (meta != null && meta.getDefaultChannel() != null) {
-                    return meta.getDefaultChannel();
+                if (meta != null && meta.getDefault_channel() != null) {
+                    return meta.getDefault_channel();
                 } else {
                     return null;
                 }
@@ -516,7 +516,7 @@ public class ChatCommands implements TabExecutor {
     private void updateLastChannelReceived(Player player, String channel) {
         String UUID = player.getUniqueId().toString();
         plugin.playerMetaCache.getPlayerMeta(UUID).thenAccept(meta -> {
-            meta.setLastReceived(channel);
+            meta.setLast_received(channel);
             plugin.playerMetaCache.updatePlayerMeta(UUID, meta);
         });
     }
@@ -524,7 +524,7 @@ public class ChatCommands implements TabExecutor {
 
     private CompletableFuture<String> getLastChannelReceived(Player player) {
         String UUID = player.getUniqueId().toString();
-        return plugin.playerMetaCache.getPlayerMeta(UUID).thenApply(PlayerMeta::getLastReceived);
+        return plugin.playerMetaCache.getPlayerMeta(UUID).thenApply(PlayerMeta::getLast_received);
     }
 
     private CompletableFuture<Boolean> assertManager(CommandSender sender, String channelName) {

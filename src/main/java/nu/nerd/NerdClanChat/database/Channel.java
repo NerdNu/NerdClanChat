@@ -21,10 +21,10 @@ public class Channel {
     private String color;
 
     @DatabaseField(canBeNull = false)
-    private String textColor;
+    private String text_color;
 
     @DatabaseField(canBeNull = false)
-    private String alertColor;
+    private String alert_color;
 
     @DatabaseField
     private boolean pub;
@@ -48,8 +48,8 @@ public class Channel {
         this.setName(name);
         this.setOwner(ownerUUID);
         this.setColor("BLUE");
-        this.setTextColor("GRAY");
-        this.setAlertColor("GRAY");
+        this.setText_color("GRAY");
+        this.setAlert_color("GRAY");
         this.setSecret(false);
         this.setPub(false);
     }
@@ -106,32 +106,32 @@ public class Channel {
      * Returns the textcolor of the channel.
      * @return the textcolor of the channel.
      */
-    public String getTextColor() {
-        return this.textColor;
+    public String getText_color() {
+        return this.text_color;
     }
 
     /**
      * Sets the textcolor of the channel.
      * @param color the colour (either one of the main 16 vanilla ones or a hex code with a leading #)
      */
-    public void setTextColor(String color) {
-        this.textColor = color;
+    public void setText_color(String color) {
+        this.text_color = color;
     }
 
     /**
      * Returns the alertcolor of the channel.
      * @return the alertcolor of the channel.
      */
-    public String getAlertColor() {
-        return this.alertColor;
+    public String getAlert_color() {
+        return this.alert_color;
     }
 
     /**
      * Sets the alertcolor of the channel.
      * @param color the colour (either one of the main 16 vanilla ones or a hex code with a leading #)
      */
-    public void setAlertColor(String color) {
-        this.alertColor = color;
+    public void setAlert_color(String color) {
+        this.alert_color = color;
     }
 
     /**

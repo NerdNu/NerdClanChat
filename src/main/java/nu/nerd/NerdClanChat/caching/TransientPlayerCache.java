@@ -51,7 +51,7 @@ public class TransientPlayerCache {
      */
     public void clearPlayerCache(Collection<ChannelMember> channelMembers) {
         for (ChannelMember member : channelMembers) {
-            this.clearPlayerCache(member.getUUID());
+            this.clearPlayerCache(member.getUuid());
         }
     }
 

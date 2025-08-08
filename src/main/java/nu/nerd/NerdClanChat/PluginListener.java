@@ -6,8 +6,6 @@ import net.kyori.adventure.text.TextComponent;
 import nu.nerd.NerdClanChat.database.Bulletin;
 import nu.nerd.NerdClanChat.database.Channel;
 import nu.nerd.NerdClanChat.database.ChannelMember;
-import nu.nerd.NerdClanChat.database.PlayerMeta;
-import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -87,7 +85,7 @@ public class PluginListener implements Listener {
                                         }
 
                                         for (Bulletin bulletin : bulletinsToShow) {
-                                            event.getPlayer().sendMessage(tag.append(Component.text(bulletin.getMessage(), NCCUtil.color(channel.getAlertColor()))));
+                                            event.getPlayer().sendMessage(tag.append(Component.text(bulletin.getMessage(), NCCUtil.color(channel.getAlert_color()))));
                                         }
                                     }
                                 });

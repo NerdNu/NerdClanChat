@@ -9,7 +9,6 @@ import nu.nerd.NerdClanChat.NerdClanChat;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
@@ -40,7 +39,7 @@ public class ChannelMembersTable {
             try {
                 List<ChannelMember> membersList = channelMembersDao.queryBuilder().where().eq("channel", channel).query();
                 for(ChannelMember member : membersList) {
-                    members.put(member.getUUID(), member);
+                    members.put(member.getUuid(), member);
                 }
                 return members;
             } catch(SQLException exception) {

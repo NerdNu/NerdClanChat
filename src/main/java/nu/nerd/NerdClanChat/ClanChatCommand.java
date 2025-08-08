@@ -10,7 +10,6 @@ import nu.nerd.NerdClanChat.database.ChannelMember;
 import nu.nerd.NerdClanChat.database.Invite;
 import nu.nerd.NerdClanChat.database.PlayerMeta;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -21,7 +20,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
-import java.util.regex.Pattern;
 
 
 public class ClanChatCommand implements TabExecutor {
@@ -390,7 +388,7 @@ public class ClanChatCommand implements TabExecutor {
                 //Update owner's player meta to make this their default channel
                 String UUID = owner.getUniqueId().toString();
                 plugin.playerMetaCache.getPlayerMeta(UUID).thenAccept(playerMeta -> {
-                    playerMeta.setDefaultChannel(finalName);
+                    playerMeta.setDefault_channel(finalName);
                     plugin.playerMetaCache.updatePlayerMeta(UUID, playerMeta);
 
                     bukkitScheduler.runTask(plugin, () -> {
@@ -512,9 +510,9 @@ public class ClanChatCommand implements TabExecutor {
                }
 
                if (key == ChannelColor.ALERTCOLOR) {
-                   channel.setAlertColor(finalColor);
+                   channel.setAlert_color(finalColor);
                } else if (key == ChannelColor.TEXTCOLOR) {
-                   channel.setTextColor(finalColor);
+                   channel.setText_color(finalColor);
                } else {
                    channel.setColor(finalColor);
                }
@@ -628,7 +626,7 @@ public class ClanChatCommand implements TabExecutor {
                     return;
                 }
 
-                plugin.invitesTable.alreadyInvited(playerMeta.getUUID(), lowChannelName).thenAccept(invitedBoolean -> {
+                plugin.invitesTable.alreadyInvited(playerMeta.getUuid(), lowChannelName).thenAccept(invitedBoolean -> {
                     if (playerMeta == null) {
                         bukkitScheduler.runTask(plugin, () -> sender.sendMessage(Component.text("Sorry," +
                                 " but that player hasn't logged on recently. Try again later.", NamedTextColor.RED)));
@@ -641,10 +639,10 @@ public class ClanChatCommand implements TabExecutor {
                         return;
                     }
 
-                    Invite inv = new Invite(lowChannelName, playerMeta.getUUID());
+                    Invite inv = new Invite(lowChannelName, playerMeta.getUuid());
                     plugin.invitesTable.save(inv);
 
-                    Player player = plugin.getServer().getPlayer(UUID.fromString(playerMeta.getUUID()));
+                    Player player = plugin.getServer().getPlayer(UUID.fromString(playerMeta.getUuid()));
                     if (player != null) {
                         bukkitScheduler.runTask(plugin, () -> {
                             player.sendMessage(Component.text("You have been invited to " + lowChannelName +
@@ -696,14 +694,14 @@ public class ClanChatCommand implements TabExecutor {
                    return;
                }
 
-               plugin.invitesTable.alreadyInvited(playerMeta.getUUID(), finalChannelName).thenAccept(invitedBoolean -> {
+               plugin.invitesTable.alreadyInvited(playerMeta.getUuid(), finalChannelName).thenAccept(invitedBoolean -> {
                    if (!invitedBoolean) {
                        bukkitScheduler.runTask(plugin, () -> sender.sendMessage(Component.text("That player" +
                                " isn't in the invite list.", NamedTextColor.RED)));
                        return;
                    }
 
-                   plugin.invitesTable.closeInvitation(playerMeta.getUUID(), finalChannelName);
+                   plugin.invitesTable.closeInvitation(playerMeta.getUuid(), finalChannelName);
 
                    bukkitScheduler.runTask(plugin, () -> sender.sendMessage(Component.text("Player removed from" +
                            " the invite list", NamedTextColor.BLUE)));
@@ -750,7 +748,7 @@ public class ClanChatCommand implements TabExecutor {
                     return;
                 }
 
-                if (newOwnerMeta == null || !members.containsKey(newOwnerMeta.getUUID())) {
+                if (newOwnerMeta == null || !members.containsKey(newOwnerMeta.getUuid())) {
                     bukkitScheduler.runTask(plugin, () -> sender.sendMessage(Component.text("The new owner" +
                             " must be a member of the channel.", NamedTextColor.RED)));
                     return;
@@ -762,13 +760,13 @@ public class ClanChatCommand implements TabExecutor {
                 plugin.channelMembersTable.save(oldOwnerMember);
 
                 // Change the channel owner
-                channel.setOwner(newOwnerMeta.getUUID());
+                channel.setOwner(newOwnerMeta.getUuid());
                 plugin.channelsTable.save(channel);
 
                 // Ensure the new owner is a manager, for consistency
-                ChannelMember newOwnerMember = members.get(newOwnerMeta.getUUID());
+                ChannelMember newOwnerMember = members.get(newOwnerMeta.getUuid());
                 newOwnerMember.setManager(true);
-                members.put(newOwnerMeta.getUUID(), newOwnerMember);
+                members.put(newOwnerMeta.getUuid(), newOwnerMember);
                 plugin.channelMembersTable.save(newOwnerMember);
 
                 // Update cache
@@ -816,28 +814,28 @@ public class ClanChatCommand implements TabExecutor {
                     return;
                 }
 
-                if (managerMeta == null || !members.containsKey(managerMeta.getUUID())) {
+                if (managerMeta == null || !members.containsKey(managerMeta.getUuid())) {
                     bukkitScheduler.runTask(plugin, () -> sender.sendMessage(Component.text("Only members" +
                             " can be made managers. Invite them to the channel, and wait for them to join first.",
                             NamedTextColor.RED)));
                     return;
                 }
 
-                if (members.get(managerMeta.getUUID()).isManager()) {
+                if (members.get(managerMeta.getUuid()).isManager()) {
                     bukkitScheduler.runTask(plugin, () -> sender.sendMessage(Component.text(playerName +
                             " is already a manager", NamedTextColor.RED)));
                     return;
                 }
 
-                ChannelMember cm = members.get(managerMeta.getUUID());
+                ChannelMember cm = members.get(managerMeta.getUuid());
                 cm.setManager(true);
-                members.put(cm.getUUID(), cm);
+                members.put(cm.getUuid(), cm);
                 plugin.channelMembersTable.save(cm);
                 plugin.channelCache.updateChannelMembers(finalChannelName, members);
                 bukkitScheduler.runTask(plugin, () -> sender.sendMessage(Component.text(playerName +
                         " added as a manager!", NamedTextColor.BLUE)));
 
-                Player player = plugin.getServer().getPlayer(UUID.fromString(managerMeta.getUUID()));
+                Player player = plugin.getServer().getPlayer(UUID.fromString(managerMeta.getUuid()));
                 if (player != null) {
                     bukkitScheduler.runTask(plugin, () -> player.sendMessage(Component.text("You have been" +
                             " made a manager in " + finalChannelName, NamedTextColor.BLUE)));
@@ -883,14 +881,14 @@ public class ClanChatCommand implements TabExecutor {
                     return;
                 }
 
-                if (managerMeta == null || !members.containsKey(managerMeta.getUUID()) || !members.get(managerMeta.getUUID()).isManager()) {
+                if (managerMeta == null || !members.containsKey(managerMeta.getUuid()) || !members.get(managerMeta.getUuid()).isManager()) {
                     bukkitScheduler.runTask(plugin, () -> sender.sendMessage(Component.text(playerName + " is not" +
                             " a manager in " + finalChannelName, NamedTextColor.RED)));
                     return;
                 }
-                ChannelMember cm = members.get(managerMeta.getUUID());
+                ChannelMember cm = members.get(managerMeta.getUuid());
                 cm.setManager(false);
-                members.put(cm.getUUID(), cm);
+                members.put(cm.getUuid(), cm);
                 plugin.channelMembersTable.save(cm);
                 plugin.channelCache.updateChannelMembers(finalChannelName, members);
 
@@ -999,15 +997,15 @@ public class ClanChatCommand implements TabExecutor {
 
                ChannelMember member;
 
-               if (playerMeta != null && members.containsKey(playerMeta.getUUID())) {
-                   member = members.get(playerMeta.getUUID());
+               if (playerMeta != null && members.containsKey(playerMeta.getUuid())) {
+                   member = members.get(playerMeta.getUuid());
                } else {
                    bukkitScheduler.runTask(plugin, () -> sender.sendMessage(Component.text("That player" +
                            " isn't a member.", NamedTextColor.RED)));
                    return;
                }
 
-               if (member.getUUID().equals(channel.getOwner())) {
+               if (member.getUuid().equals(channel.getOwner())) {
                    bukkitScheduler.runTask(plugin, () ->sender.sendMessage(Component.text("You cannot remove" +
                            " the owner from a channel!", NamedTextColor.RED)));
                    return;
@@ -1020,7 +1018,7 @@ public class ClanChatCommand implements TabExecutor {
                }
 
                plugin.channelMembersTable.delete(member);
-               members.remove(member.getUUID());
+               members.remove(member.getUuid());
                plugin.channelCache.updateChannelMembers(channelName, members);
                bukkitScheduler.runTask(plugin, () -> sender.sendMessage(Component.text("Member removed.", NamedTextColor.BLUE)));
 
@@ -1100,7 +1098,7 @@ public class ClanChatCommand implements TabExecutor {
                 plugin.channelCache.updateChannelMembers(finalChannelName, members);
                 plugin.invitesTable.closeInvitation(UUID, finalChannelName);
 
-                meta.setDefaultChannel(finalChannelName);
+                meta.setDefault_channel(finalChannelName);
                 plugin.playerMetaCache.updatePlayerMeta(UUID, meta);
 
                 bukkitScheduler.runTask(plugin, () -> {
@@ -1335,7 +1333,7 @@ public class ClanChatCommand implements TabExecutor {
 
                 // Figure out which colour system is being used
                 TextColor channelColor = NCCUtil.color(channel.getColor());
-                TextColor channelAlertColor = NCCUtil.color(channel.getAlertColor());
+                TextColor channelAlertColor = NCCUtil.color(channel.getAlert_color());
 
                 msg = msg.append(Component.text("[" + channelName + "] ", channelColor))
                         .append(Component.text(message, channelAlertColor));
@@ -1544,7 +1542,7 @@ public class ClanChatCommand implements TabExecutor {
             if (channel != null) {
                 // Figure out which colour system is being used
                 TextColor channelColor = NCCUtil.color(channel.getColor());
-                TextColor channelTextColor = NCCUtil.color(channel.getTextColor());
+                TextColor channelTextColor = NCCUtil.color(channel.getText_color());
 
                 TextComponent msg = Component.text("[" + channelName + "] ", channelColor)
                         .append(Component.text("<", NamedTextColor.GRAY))

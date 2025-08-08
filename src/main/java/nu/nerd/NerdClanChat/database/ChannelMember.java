@@ -14,7 +14,7 @@ public class ChannelMember {
     private String channel;
 
     @DatabaseField(canBeNull = false)
-    private String UUID;
+    private String uuid;
 
     @DatabaseField
     private String name;
@@ -34,13 +34,13 @@ public class ChannelMember {
     /**
      * Contructor to create a new channel member instance.
      * @param channel The channel this member will belong to.
-     * @param UUID The UUID of this member.
+     * @param uuid The UUID of this member.
      * @param name The name of this member.
      * @param isManager If this member is a manager.
      */
-    public ChannelMember(String channel, String UUID, String name, boolean isManager) {
+    public ChannelMember(String channel, String uuid, String name, boolean isManager) {
         this.setChannel(channel);
-        this.setUUID(UUID);
+        this.setUuid(uuid);
         this.setName(name);
         this.setSubscribed(true);
         this.setManager(isManager);
@@ -66,16 +66,16 @@ public class ChannelMember {
      * Returns the UUID of this member.
      * @return the UUID of this member.
      */
-    public String getUUID() {
-        return this.UUID;
+    public String getUuid() {
+        return this.uuid;
     }
 
     /**
      * Sets the UUID of this member.
-     * @param UUID the UUID of this member.
+     * @param uuid the UUID of this member.
      */
-    public void setUUID(String UUID) {
-        this.UUID = UUID;
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
     /**
