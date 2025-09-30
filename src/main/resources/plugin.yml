@@ -2,6 +2,7 @@ name: NerdClanChat
 main: nu.nerd.NerdClanChat.NerdClanChat
 description: A chat channel plugin
 version: ${project.version}
+authors: [redwallhp, bermudalocket, LadyCailin, totemo, PPGOME]
 database: true
 api-version: '1.20'
 

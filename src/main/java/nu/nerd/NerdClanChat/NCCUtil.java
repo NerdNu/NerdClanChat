@@ -29,6 +29,7 @@ public class NCCUtil {
             if(list.indexOf(item) % 2 == 0) {
                 listOutput = listOutput.append(Component.text(item, color1));
             } else {
+
                 listOutput = listOutput.append(Component.text(item, color2));
             }
             if(list.indexOf(item) != (list.size() - 1)) {

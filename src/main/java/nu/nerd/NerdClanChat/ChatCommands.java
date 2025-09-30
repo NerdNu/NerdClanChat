@@ -3,8 +3,6 @@ package nu.nerd.NerdClanChat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import nu.nerd.NerdClanChat.database.Bulletin;
 import nu.nerd.NerdClanChat.database.Channel;
 import nu.nerd.NerdClanChat.database.ChannelMember;
@@ -28,9 +26,6 @@ public class ChatCommands implements TabExecutor {
 
 
     private final NerdClanChat plugin;
-    private enum MessageType {
-        NORMAL, ME, ALERT, SARCASM
-    }
     private final BukkitScheduler bukkitScheduler = Bukkit.getScheduler();
 
 
@@ -57,7 +52,7 @@ public class ChatCommands implements TabExecutor {
                 } else if (args[0].charAt(0) == '#' && args.length == 1) {
                     this.setDefaultChannel(sender, args[0].substring(1));
                 } else {
-                    this.chat(sender, args, MessageType.NORMAL);
+                    this.chat(sender, args, Message.MessageType.NORMAL);
                 }
                 yield true;
             }
@@ -73,7 +68,7 @@ public class ChatCommands implements TabExecutor {
                 if (args.length < 1) {
                     sender.sendMessage(Component.text("Usage: /ca [#<channel>] <message>", NamedTextColor.RED));
                 } else {
-                    this.chat(sender, args, MessageType.ALERT);
+                    this.chat(sender, args, Message.MessageType.ALERT);
                 }
                 yield true;
             }
@@ -83,7 +78,7 @@ public class ChatCommands implements TabExecutor {
                 } else if (args[0].charAt(0) == '#' && args.length == 1) {
                     this.setDefaultChannel(sender, args[0].substring(1));
                 } else {
-                    this.chat(sender, args, MessageType.ME);
+                    this.chat(sender, args, Message.MessageType.ME);
                 }
                 yield true;
             }
@@ -93,7 +88,7 @@ public class ChatCommands implements TabExecutor {
                 } else if (args[0].charAt(0) == '#' && args.length == 1) {
                     this.setDefaultChannel(sender, args[0].substring(1));
                 } else {
-                    this.chat(sender, args, MessageType.SARCASM);
+                    this.chat(sender, args, Message.MessageType.SARCASM);
                 }
                 yield true;
             }
@@ -118,7 +113,7 @@ public class ChatCommands implements TabExecutor {
     }
 
 
-    private void chat(CommandSender sender, String[] args, MessageType type) {
+    private void chat(CommandSender sender, String[] args, Message.MessageType type) {
         if (args[0].charAt(0) == '#') {
             String channel = args[0].substring(1);
             String message = NCCUtil.joinArray(" ", Arrays.copyOfRange(args, 1, args.length));
@@ -142,7 +137,7 @@ public class ChatCommands implements TabExecutor {
     private void cq(CommandSender sender, String[] args) {
         String channel = args[0].substring(1);
         String message = NCCUtil.joinArray(" ", Arrays.copyOfRange(args, 1, args.length));
-        this.sendMessage(sender, channel, message, MessageType.NORMAL, false);
+        this.sendMessage(sender, channel, message, Message.MessageType.NORMAL, false);
     }
 
 
@@ -151,7 +146,7 @@ public class ChatCommands implements TabExecutor {
             String message = NCCUtil.joinArray(" ", args);
             this.getLastChannelReceived(player).thenAccept(channelName -> {
                 if (channelName != null) {
-                    this.sendMessage(sender, channelName, message, MessageType.NORMAL, true);
+                    this.sendMessage(sender, channelName, message, Message.MessageType.NORMAL, true);
                 } else {
                     bukkitScheduler.runTask(plugin, () -> sender.sendMessage(Component.text("You have not" +
                             " yet received a message to reply to.", NamedTextColor.RED)));
@@ -194,7 +189,7 @@ public class ChatCommands implements TabExecutor {
     }
 
 
-    private void sendMessage(CommandSender sender, String channelName, String message, MessageType type, boolean changeDefault) {
+    private void sendMessage(CommandSender sender, String channelName, String message, Message.MessageType type, boolean changeDefault) {
 
         CompletableFuture<Channel> channelFuture = plugin.channelCache.getChannel(channelName.toLowerCase());
         CompletableFuture<HashMap<String, ChannelMember>> membersFuture = plugin.channelCache.getChannelMembers(channelName.toLowerCase());
@@ -214,53 +209,26 @@ public class ChatCommands implements TabExecutor {
                     return;
                 }
 
-                if (type == MessageType.ALERT) {
+                if (type == Message.MessageType.ALERT) {
                     this.assertManager(sender, channelName).thenAccept(isManager -> {
                         if(isManager) {
-                            TextComponent msg = Component.text("[" + channelName + "]", NCCUtil.color(channel.getColor()))
-                                    .append(Component.text(" <", NamedTextColor.GRAY))
-                                    .append(Component.text(sender.getName(), NamedTextColor.WHITE))
-                                    .append(Component.text("> ", NamedTextColor.GRAY))
-                                    .append(Component.text(message, NCCUtil.color(channel.getAlert_color()), TextDecoration.UNDERLINED));
-
+                            TextComponent msg = new Message(message, sender.getName(), channel, type).build();
                             logAndSend(channelName, sender, message, msg, members);
                         }
                     });
                     return;
                 }
 
-                TextComponent tag;
-                TextComponent msg;
-                TextComponent name;
-
-                TextColor channelColor = NCCUtil.color(channel.getColor());
-                TextColor channelTextColor = NCCUtil.color(channel.getText_color());
+                String playerName;
 
                 // Get sender name, using ~console for console
-                name = Component.text("");
-                if(type != MessageType.ME) name = name.append(Component.text(" <", NamedTextColor.GRAY));
                 if (sender instanceof Player player) {
-                    name = name.append(Component.text(player.getName()));
+                    playerName = player.getName();
                 } else {
-                    name = name.append(Component.text("~console", NamedTextColor.RED));
+                    playerName = "~console";
                 }
-                if(type != MessageType.ME) name = name.append(Component.text("> ", NamedTextColor.GRAY));
 
-                tag = Component.text("[" + channel.getName() + "]", channelColor);
-
-                // Format message
-                if (type == MessageType.ME) {
-                    msg = tag.append(Component.text(" * ", channelTextColor))
-                            .append(name.color(channelTextColor))
-                            .append(Component.text(" "))
-                            .append(Component.text(message, channelTextColor));
-                }
-                else if (type == MessageType.SARCASM) {
-                    msg = tag.append(name.color(NamedTextColor.WHITE)).append(Component.text(message, channelTextColor, TextDecoration.ITALIC));
-                }
-                else {
-                    msg = tag.append(name.color(NamedTextColor.WHITE)).append(Component.text(message, channelTextColor));
-                }
+                TextComponent msg = new Message(message, playerName, channel, type).build();
 
                 // Change default, if applicable
                 if (changeDefault) {
